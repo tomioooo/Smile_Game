@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>ENA - Jogo Surreal</title>
+  <style>
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      text-align: center;
+      padding: 20px;
+      transition: background-color 0.8s ease, transform 0.4s ease;
+    }
+
+    .triste {
+      background-color: #0b1a33;
+      color: #a3c2ff;
+    }
+
+    .feliz {
+      background-color: #fff176;
+      color: #333;
+    }
+
+    .neutra {
+      background-color: #e0e0e0;
+      color: #222;
+    }
+
+    .bebada {
+      background-color: #ffccf9;
+      color: #550055;
+      animation: balanco 0.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes balanco {
+      0% { transform: rotate(1deg); }
+      100% { transform: rotate(-1deg); }
+    }
+
+    #jogo {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .inicial, .acertou-feliz, .acertou-triste, .acertou-neutra, .acertou-bebada, .errou {
+      width: 100px;
+      height: 100px;
+      border: 3px dashed #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 24px;
+      transition: all 0.4s ease;
+    }
+
+    .acertou-feliz {
+      background-color: #ffe082;
+      border-color: #fbc02d;
+    }
+
+    .acertou-triste {
+      background-color: #263238;
+      border-color: #90a4ae;
+    }
+
+    .acertou-neutra {
+      background-color: #bdbdbd;
+      border-color: #757575;
+    }
+
+    .acertou-bebada {
+      background-color: #ffb3e6;
+      border-color: #ff66cc;
+    }
+
+    .errou {
+      background-color: #ff7043;
+      border-color: #e53935;
+      opacity: 0.7;
+    }
+
+    .visivel {
+      display: inline-block;
+      margin: 10px;
+    }
+
+    .invisivel {
+      display: none;
+    }
+
+    #resposta {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+
+    img {
+      width: 60px;
+    }
+  </style>
+</head>
+<body class="neutra">
+
+  <h1>ENA: Jogo das Realidades</h1>
+  <p id="resposta">Nada. Tudo. ENA contempla.</p>
+
+  <div id="jogo">
+    <div id="0" onclick="verifica(this)" class="inicial"></div>
+    <div id="1" onclick="verifica(this)" class="inicial"></div>
+    <div id="2" onclick="verifica(this)" class="inicial"></div>
+    <div id="3" onclick="verifica(this)" class="inicial"></div>
+  </div>
+
+  <button id="joganovamente" class="visivel">Jogar novamente</button>
+  <button id="reiniciar" class="invisivel">Reiniciar</button>
+
+  <div id="taski-area" class="invisivel">
+    <img src="taski.png" id="taski-img" style="width:150px; margin-top:20px;">
+    <p id="taski-frase" style="font-style: italic; color: #880e4f;"></p>
+  </div>
+
+  <script>
+    let desempenho = 0;
+    let tentativas = 0;
+    let acertos = 0;
+    let jogar = true;
+    let estadoENA = 'neutra';
+    let cartaSorteada = -1;
+
+    const frasesENA = {
+      triste: "Chorando em azul... por que ainda tento?",
+      feliz: "A euforia gira como dados cósmicos!",
+      neutra: "Nada. Tudo. ENA contempla.",
+      bebada: "O chão está rindo comigo... ou de mim?"
+    };
+
+    const btnReiniciar = document.getElementById('reiniciar');
+    const btnJogarNovamente = document.getElementById('joganovamente');
+
+    function alternaEstadoENA() {
+      const estados = ['triste', 'feliz', 'neutra'];
+      estadoENA = estados[Math.floor(Math.random() * estados.length)];
+      document.body.className = estadoENA;
+    }
+
+    function reiniciar() {
+      desempenho = 0;
+      tentativas = 0;
+      acertos = 0;
+      jogar = true;
+      alternaEstadoENA();
+      jogarNovamente();
+      atualizaPlacar(0, 0);
+      btnJogarNovamente.className = 'visivel';
+      btnReiniciar.className = 'invisivel';
+    }
+
+    function jogarNovamente() {
+      jogar = true;
+      let divis = document.getElementsByTagName("div");
+      for (let i = 0; i < divis.length; i++) {
+        if (["0", "1", "2", "3"].includes(divis[i].id)) {
+          divis[i].className = "inicial";
+          divis[i].innerHTML = '';
+        }
+      }
+
+      const imagem = document.getElementById("imagem");
+      if (imagem) imagem.remove();
+
+      document.getElementById("taski-area").className = "invisivel";
+      alternaEstadoENA();
+    }
+
+    function atualizaPlacar(acertos, tentativas) {
+      desempenho = (acertos / tentativas) * 100;
+      const frase = frasesENA[estadoENA];
+      document.getElementById("resposta").innerHTML =
+        `${frase}<br><strong>Acertos:</strong> ${acertos} | <strong>Tentativas:</strong> ${tentativas} | <strong>Desempenho:</strong> ${Math.round(desempenho)}%`;
+    }
+
+    function acertou(obj, id) {
+      if (id == 3) {
+        estadoENA = "bebada";
+        document.body.className = "bebada";
+      }
+      obj.className = "acertou-" + estadoENA;
+
+      const img = new Image(100);
+      img.id = "imagem";
+      img.src =
+        id === 0 ? "ena1.png" :
+        id === 1 ? "ena2.png" :
+        id === 2 ? "ena3.png" :
+        "ena4.png";
+
+      obj.appendChild(img);
+    }
+
+    function verifica(obj) {
+      if (jogar) {
+        jogar = false;
+        tentativas++;
+
+        if (tentativas === 3) {
+          btnJogarNovamente.className = 'invisivel';
+          btnReiniciar.className = 'visivel';
+        }
+
+        cartaSorteada = Math.floor(Math.random() * 4);
+
+        if (parseInt(obj.id) === cartaSorteada) {
+          acertou(obj, cartaSorteada);
+          acertos++;
+        } else {
+          obj.className = "errou";
+          const objSorteado = document.getElementById(cartaSorteada);
+          acertou(objSorteado, cartaSorteada);
+
+          // Mostrar Taski Maiden zombando
+          document.getElementById("taski-area").className = "visivel";
+          document.getElementById("taski-frase").innerText =
+            "Você errou? Hah! Que surpresa... Clique em Jogar novamente (˵ •̀ ᴗ - ˵ ).";
+        }
+
+        atualizaPlacar(acertos, tentativas);
+      } else {
+        alert("Calma... clique em 'Jogar novamente'. A realidade precisa se reorganizar.");
+      }
+    }
+
+    btnJogarNovamente.addEventListener('click', jogarNovamente);
+    btnReiniciar.addEventListener('click', reiniciar);
+  </script>
+</body>
+</html>
